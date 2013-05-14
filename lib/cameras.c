@@ -746,26 +746,6 @@ static int write_register(freenect_device *dev, uint16_t reg, uint16_t data)
 	return 0;
 }
 
-// This function is here for completeness.  We don't actually use it for anything right now.
-static uint16_t read_register(freenect_device *dev, uint16_t reg)
-{
-	freenect_context *ctx = dev->parent;
-	uint16_t reply[2];
-	uint16_t cmd;
-	int res;
-
-	cmd = fn_le16(reg);
-
-	FN_DEBUG("Read Reg 0x%04x =>\n", reg);
-	res = send_cmd(dev, 0x02, &cmd, 2, reply, 4);
-	if (res < 0)
-		FN_ERROR("read_register: send_cmd() failed: %d\n", res);
-	if (res != 4)
-		FN_WARNING("send_cmd returned %d [%04x %04x], 0000 expected\n", res, reply[0], reply[1]);
-
-	return reply[1];
-}
-
 static int freenect_fetch_reg_info(freenect_device *dev)
 {
 	freenect_context *ctx = dev->parent;
@@ -1347,7 +1327,7 @@ int freenect_set_video_buffer(freenect_device *dev, void *buf)
 	return stream_setbuf(dev->parent, &dev->video, buf);
 }
 
-FN_INTERNAL int freenect_camera_init(freenect_device *dev)
+int freenect_camera_init(freenect_device *dev)
 {
 	freenect_context *ctx = dev->parent;
 	int res;
@@ -1371,7 +1351,7 @@ FN_INTERNAL int freenect_camera_init(freenect_device *dev)
 	return 0;
 }
 
-FN_INTERNAL int freenect_camera_teardown(freenect_device *dev)
+int freenect_camera_teardown(freenect_device *dev)
 {
 	freenect_context *ctx = dev->parent;
 	int res = 0;

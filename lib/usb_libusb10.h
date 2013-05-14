@@ -30,36 +30,10 @@
 #include "libfreenect.h"
 #include <libusb-1.0/libusb.h>
 
-#if defined(__APPLE__)
-/*
-  From Github Issue 22 by Roefer -
-  https://github.com/OpenKinect/libfreenect/issues/#issue/22
-
-  The current implementation still does not reach 30 Hz on MacOS. This
-  is due to bad scheduling of USB transfers in libusb (Ed Note: libusb
-  1.0.8). A fix can be found at
-  http://www.informatik.uni-bremen.de/~roefer/libusb/libusb-osx-kinect.diff
-
-  (Ed Note: patch applies to libusb repo at 7da756e09fd)
-
-  In camera.c, I use PKTS_PER_XFER = 128, NUM_XFERS = 4. There are a
-  few rules: PKTS_PER_XFER * NUM_XFERS <= 1000, PKTS_PER_XFER % 8 == 0.
-*/
-#define PKTS_PER_XFER 128
-#define NUM_XFERS 4
-#define DEPTH_PKTBUF 2048
-#define VIDEO_PKTBUF 2048
-#else
-#ifdef _WIN32
-  #define PKTS_PER_XFER 32
-  #define NUM_XFERS 8
-#else
-  #define PKTS_PER_XFER 16
-  #define NUM_XFERS 16
-#endif
+#define PKTS_PER_XFER 16
+#define NUM_XFERS 16
 #define DEPTH_PKTBUF 1920
 #define VIDEO_PKTBUF 1920
-#endif
 
 typedef struct {
 	libusb_context *ctx;
@@ -99,9 +73,5 @@ int fnusb_start_iso(fnusb_dev *dev, fnusb_isoc_stream *strm, fnusb_iso_cb cb, in
 int fnusb_stop_iso(fnusb_dev *dev, fnusb_isoc_stream *strm);
 
 int fnusb_control(fnusb_dev *dev, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint8_t *data, uint16_t wLength);
-#ifdef BUILD_AUDIO
-int fnusb_bulk(fnusb_dev *dev, uint8_t endpoint, uint8_t *data, int len, int *transferred);
-int fnusb_num_interfaces(fnusb_dev *dev);
-#endif
 
 #endif

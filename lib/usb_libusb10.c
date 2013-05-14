@@ -32,7 +32,7 @@
 #include <libusb-1.0/libusb.h>
 #include "freenect_internal.h"
 
-FN_INTERNAL int fnusb_num_devices(fnusb_ctx *ctx)
+int fnusb_num_devices(fnusb_ctx *ctx)
 {
 	libusb_device **devs; 
 	//pointer to pointer of device, used to retrieve a list of devices	
@@ -55,7 +55,7 @@ FN_INTERNAL int fnusb_num_devices(fnusb_ctx *ctx)
 	return nr;
 }
 
-FN_INTERNAL int fnusb_list_device_attributes(fnusb_ctx *ctx, struct freenect_device_attributes** attribute_list)
+int fnusb_list_device_attributes(fnusb_ctx *ctx, struct freenect_device_attributes** attribute_list)
 {
 	*attribute_list = NULL; // initialize some return value in case the user is careless.
 	libusb_device **devs;
@@ -115,7 +115,7 @@ FN_INTERNAL int fnusb_list_device_attributes(fnusb_ctx *ctx, struct freenect_dev
 	return num_cams;
 }
 
-FN_INTERNAL int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
+int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
 {
 	int res;
 	if (!usb_ctx) {
@@ -136,7 +136,7 @@ FN_INTERNAL int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
 	}
 }
 
-FN_INTERNAL int fnusb_shutdown(fnusb_ctx *ctx)
+int fnusb_shutdown(fnusb_ctx *ctx)
 {
 	//int res;
 	if (ctx->should_free_ctx) {
@@ -146,17 +146,17 @@ FN_INTERNAL int fnusb_shutdown(fnusb_ctx *ctx)
 	return 0;
 }
 
-FN_INTERNAL int fnusb_process_events(fnusb_ctx *ctx)
+int fnusb_process_events(fnusb_ctx *ctx)
 {
 	return libusb_handle_events(ctx->ctx);
 }
 
-FN_INTERNAL int fnusb_process_events_timeout(fnusb_ctx *ctx, struct timeval* timeout)
+int fnusb_process_events_timeout(fnusb_ctx *ctx, struct timeval* timeout)
 {
 	return libusb_handle_events_timeout(ctx->ctx, timeout);
 }
 
-FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
+int fnusb_open_subdevices(freenect_device *dev, int index)
 {
 	freenect_context *ctx = dev->parent;
 
@@ -265,7 +265,7 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 	}
 }
 
-FN_INTERNAL int fnusb_close_subdevices(freenect_device *dev)
+int fnusb_close_subdevices(freenect_device *dev)
 {
 	if (dev->usb_cam.dev) {
 		libusb_release_interface(dev->usb_cam.dev, 0);
@@ -365,7 +365,7 @@ static void iso_callback(struct libusb_transfer *xfer)
 	}
 }
 
-FN_INTERNAL int fnusb_start_iso(fnusb_dev *dev, fnusb_isoc_stream *strm, fnusb_iso_cb cb, int ep, int xfers, int pkts, int len)
+int fnusb_start_iso(fnusb_dev *dev, fnusb_isoc_stream *strm, fnusb_iso_cb cb, int ep, int xfers, int pkts, int len)
 {
 	freenect_context *ctx = dev->parent->parent;
 	int ret, i;
@@ -403,7 +403,7 @@ FN_INTERNAL int fnusb_start_iso(fnusb_dev *dev, fnusb_isoc_stream *strm, fnusb_i
 
 }
 
-FN_INTERNAL int fnusb_stop_iso(fnusb_dev *dev, fnusb_isoc_stream *strm)
+int fnusb_stop_iso(fnusb_dev *dev, fnusb_isoc_stream *strm)
 {
 	freenect_context *ctx = dev->parent->parent;
 	int i;
@@ -434,7 +434,7 @@ FN_INTERNAL int fnusb_stop_iso(fnusb_dev *dev, fnusb_isoc_stream *strm)
 	return 0;
 }
 
-FN_INTERNAL int fnusb_control(fnusb_dev *dev, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint8_t *data, uint16_t wLength)
+int fnusb_control(fnusb_dev *dev, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, uint8_t *data, uint16_t wLength)
 {
 	return libusb_control_transfer(dev->dev, bmRequestType, bRequest, wValue, wIndex, data, wLength, 0);
 }

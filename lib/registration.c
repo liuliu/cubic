@@ -101,7 +101,7 @@ static inline void unpack_8_pixels(uint8_t *raw, uint16_t *frame)
 }
 
 // apply registration data to a single packed frame
-FN_INTERNAL int freenect_apply_registration(freenect_device* dev, uint8_t* input_packed, uint16_t* output_mm)
+int freenect_apply_registration(freenect_device* dev, uint8_t* input_packed, uint16_t* output_mm)
 {
 	freenect_registration* reg = &(dev->registration);
 	// set output buffer to zero using pointer-sized memory access (~ 30-40% faster than memset)
@@ -169,7 +169,7 @@ FN_INTERNAL int freenect_apply_registration(freenect_device* dev, uint8_t* input
 }
 
 // Same as freenect_apply_registration, but don't bother aligning to the RGB image
-FN_INTERNAL int freenect_apply_depth_to_mm(freenect_device* dev, uint8_t* input_packed, uint16_t* output_mm)
+int freenect_apply_depth_to_mm(freenect_device* dev, uint8_t* input_packed, uint16_t* output_mm)
 {
 	freenect_registration* reg = &(dev->registration);
 	uint16_t unpack[8];
@@ -332,7 +332,7 @@ void freenect_camera_to_world(freenect_device* dev, int cx, int cy, int wz, doub
 /// Allocate and fill registration tables
 /// This function should be called every time a new video (not depth!) mode is
 /// activated.
-FN_INTERNAL int freenect_init_registration(freenect_device* dev)
+int freenect_init_registration(freenect_device* dev)
 {
 	freenect_registration* reg = &(dev->registration);
 

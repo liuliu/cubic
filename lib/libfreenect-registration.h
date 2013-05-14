@@ -30,10 +30,6 @@
 #include <libfreenect.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /// Internal Kinect registration parameters.
 /// Structure matches that of the line protocol
 /// of the Kinect.
@@ -114,16 +110,11 @@ typedef struct {
 
 // These allow clients to export registration parameters; proper docs will
 // come later
-FREENECTAPI freenect_registration freenect_copy_registration(freenect_device* dev);
-FREENECTAPI int freenect_destroy_registration(freenect_registration* reg);
+freenect_registration freenect_copy_registration(freenect_device* dev);
+int freenect_destroy_registration(freenect_registration* reg);
 
 // convenience function to convert a single x-y coordinate pair from camera
 // to world coordinates
-FREENECTAPI void freenect_camera_to_world(freenect_device* dev,
-	int cx, int cy, int wz, double* wx, double* wy);
-
-#ifdef __cplusplus
-}
-#endif
+void freenect_camera_to_world(freenect_device* dev, int cx, int cy, int wz, double* wx, double* wy);
 
 #endif // LIBFREENECT_REGISTRATION_H

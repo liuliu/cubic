@@ -35,7 +35,7 @@
 #include "registration.h"
 #include "cameras.h"
 
-FREENECTAPI int freenect_init(freenect_context **ctx, freenect_usb_context *usb_ctx)
+int freenect_init(freenect_context **ctx, freenect_usb_context *usb_ctx)
 {
 	int res;
 
@@ -55,7 +55,7 @@ FREENECTAPI int freenect_init(freenect_context **ctx, freenect_usb_context *usb_
 	return res;
 }
 
-FREENECTAPI int freenect_shutdown(freenect_context *ctx)
+int freenect_shutdown(freenect_context *ctx)
 {
 	while (ctx->first) {
 		FN_NOTICE("Device %p open during shutdown, closing...\n", ctx->first);
@@ -67,7 +67,7 @@ FREENECTAPI int freenect_shutdown(freenect_context *ctx)
 	return 0;
 }
 
-FREENECTAPI int freenect_process_events(freenect_context *ctx)
+int freenect_process_events(freenect_context *ctx)
 {
 	struct timeval timeout;
 	timeout.tv_sec = 60;
@@ -75,7 +75,7 @@ FREENECTAPI int freenect_process_events(freenect_context *ctx)
 	return freenect_process_events_timeout(ctx, &timeout);
 }
 
-FREENECTAPI int freenect_process_events_timeout(freenect_context *ctx, struct timeval *timeout)
+int freenect_process_events_timeout(freenect_context *ctx, struct timeval *timeout)
 {
 	int res = fnusb_process_events_timeout(&ctx->usb, timeout);
 	// Iterate over the devices in ctx.  If any of them are flagged as
@@ -92,17 +92,17 @@ FREENECTAPI int freenect_process_events_timeout(freenect_context *ctx, struct ti
 	return res;
 }
 
-FREENECTAPI int freenect_num_devices(freenect_context *ctx)
+int freenect_num_devices(freenect_context *ctx)
 {
 	return fnusb_num_devices(&ctx->usb);
 }
 
-FREENECTAPI int freenect_list_device_attributes(freenect_context *ctx, struct freenect_device_attributes **attribute_list)
+int freenect_list_device_attributes(freenect_context *ctx, struct freenect_device_attributes **attribute_list)
 {
 	return fnusb_list_device_attributes(&ctx->usb, attribute_list);
 }
 
-FREENECTAPI void freenect_free_device_attributes(struct freenect_device_attributes *attribute_list)
+void freenect_free_device_attributes(struct freenect_device_attributes *attribute_list)
 {
 	// Iterate over list, freeing contents of each item as we go.
 	struct freenect_device_attributes* to_free;
@@ -118,15 +118,15 @@ FREENECTAPI void freenect_free_device_attributes(struct freenect_device_attribut
 	return;
 }
 
-FREENECTAPI int freenect_supported_subdevices(void) {
+int freenect_supported_subdevices(void) {
 	return FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA;
 }
 
-FREENECTAPI void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs) {
+void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs) {
 	ctx->enabled_subdevices = (freenect_device_flags)(subdevs & (FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA));
 }
 
-FREENECTAPI int freenect_open_device(freenect_context *ctx, freenect_device **dev, int index)
+int freenect_open_device(freenect_context *ctx, freenect_device **dev, int index)
 {
 	int res;
 	freenect_device *pdev = (freenect_device*)malloc(sizeof(freenect_device));
@@ -164,7 +164,7 @@ FREENECTAPI int freenect_open_device(freenect_context *ctx, freenect_device **de
 	return 0;
 }
 
-FREENECTAPI int freenect_open_device_by_camera_serial(freenect_context *ctx, freenect_device **dev, const char* camera_serial)
+int freenect_open_device_by_camera_serial(freenect_context *ctx, freenect_device **dev, const char* camera_serial)
 {
 	// This is implemented by listing the devices and seeing which index (if
 	// any) has a camera with a matching serial number, and then punting to
@@ -188,7 +188,7 @@ FREENECTAPI int freenect_open_device_by_camera_serial(freenect_context *ctx, fre
 	return -1;
 }
 
-FREENECTAPI int freenect_close_device(freenect_device *dev)
+int freenect_close_device(freenect_device *dev)
 {
 	freenect_context *ctx = dev->parent;
 	int res;
@@ -225,27 +225,27 @@ FREENECTAPI int freenect_close_device(freenect_device *dev)
 	return 0;
 }
 
-FREENECTAPI void freenect_set_user(freenect_device *dev, void *user)
+void freenect_set_user(freenect_device *dev, void *user)
 {
 	dev->user_data = user;
 }
 
-FREENECTAPI void *freenect_get_user(freenect_device *dev)
+void *freenect_get_user(freenect_device *dev)
 {
 	return dev->user_data;
 }
 
-FREENECTAPI void freenect_set_log_level(freenect_context *ctx, freenect_loglevel level)
+void freenect_set_log_level(freenect_context *ctx, freenect_loglevel level)
 {
 	ctx->log_level = level;
 }
 
-FREENECTAPI void freenect_set_log_callback(freenect_context *ctx, freenect_log_cb cb)
+void freenect_set_log_callback(freenect_context *ctx, freenect_log_cb cb)
 {
 	ctx->log_cb = cb;
 }
 
-FN_INTERNAL void fn_log(freenect_context *ctx, freenect_loglevel level, const char *fmt, ...)
+void fn_log(freenect_context *ctx, freenect_loglevel level, const char *fmt, ...)
 {
 	va_list ap;
 

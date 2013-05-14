@@ -30,15 +30,7 @@
 #include <stdint.h>
 
 /* We need struct timeval */
-#ifdef _WIN32
-#include <winsock.h>
-#else
 #include <sys/time.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define FREENECT_COUNTS_PER_G 819 /**< Ticks per G for accelerometer as set per http://www.kionix.com/Product%20Sheets/KXSD9%20Product%20Brief.pdf */
 
@@ -166,20 +158,6 @@ typedef struct _freenect_device freenect_device; /**< Holds device information. 
 typedef void freenect_usb_context; /**< Holds libusb-1.0 context */
 //
 
-/// If Win32, export all functions for DLL usage
-#ifndef _WIN32
-  #define FREENECTAPI /**< DLLExport information for windows, set to nothing on other platforms */
-#else
-  /**< DLLExport information for windows, set to nothing on other platforms */
-  #ifdef __cplusplus
-    #define FREENECTAPI extern "C" __declspec(dllexport)
-  #else
-    // this is required when building from a Win32 port of gcc without being
-    // forced to compile all of the library files (.c) with g++...
-    #define FREENECTAPI __declspec(dllexport)
-  #endif
-#endif
-
 /// Enumeration of message logging levels
 typedef enum {
 	FREENECT_LOG_FATAL = 0,     /**< Log for crashing/non-recoverable errors */
@@ -201,7 +179,7 @@ typedef enum {
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_init(freenect_context **ctx, freenect_usb_context *usb_ctx);
+int freenect_init(freenect_context **ctx, freenect_usb_context *usb_ctx);
 
 /**
  * Closes the device if it is open, and frees the context
@@ -210,7 +188,7 @@ FREENECTAPI int freenect_init(freenect_context **ctx, freenect_usb_context *usb_
  *
  * @return 0 on success
  */
-FREENECTAPI int freenect_shutdown(freenect_context *ctx);
+int freenect_shutdown(freenect_context *ctx);
 
 /// Typedef for logging callback functions
 typedef void (*freenect_log_cb)(freenect_context *dev, freenect_loglevel level, const char *msg);
@@ -221,16 +199,7 @@ typedef void (*freenect_log_cb)(freenect_context *dev, freenect_loglevel level, 
  * @param ctx context to set log level for
  * @param level log level to use (see freenect_loglevel enum)
  */
-FREENECTAPI void freenect_set_log_level(freenect_context *ctx, freenect_loglevel level);
-
-/**
- * Callback for log messages (i.e. for rerouting to a file instead of
- * stdout)
- *
- * @param ctx context to set log callback for
- * @param cb callback function pointer
- */
-FREENECTAPI void freenect_set_log_callback(freenect_context *ctx, freenect_log_cb cb);
+void freenect_set_log_callback(freenect_context *ctx, freenect_log_cb cb);
 
 /**
  * Calls the platform specific usb event processor
@@ -239,7 +208,7 @@ FREENECTAPI void freenect_set_log_callback(freenect_context *ctx, freenect_log_c
  *
  * @return 0 on success, other values on error, platform/library dependant
  */
-FREENECTAPI int freenect_process_events(freenect_context *ctx);
+int freenect_process_events(freenect_context *ctx);
 
 /**
  * Calls the platform specific usb event processor until either an event occurs
@@ -251,7 +220,7 @@ FREENECTAPI int freenect_process_events(freenect_context *ctx);
  *
  * @return 0 on success, other values on error, platform/library dependant
  */
-FREENECTAPI int freenect_process_events_timeout(freenect_context *ctx, struct timeval* timeout);
+int freenect_process_events_timeout(freenect_context *ctx, struct timeval* timeout);
 
 /**
  * Return the number of kinect devices currently connected to the
@@ -261,7 +230,7 @@ FREENECTAPI int freenect_process_events_timeout(freenect_context *ctx, struct ti
  *
  * @return Number of devices connected, < 0 on error
  */
-FREENECTAPI int freenect_num_devices(freenect_context *ctx);
+int freenect_num_devices(freenect_context *ctx);
 
 /**
  * Scans for kinect devices and produces a linked list of their attributes
@@ -272,14 +241,14 @@ FREENECTAPI int freenect_num_devices(freenect_context *ctx);
  *
  * @return Number of devices connected, < 0 on error
  */
-FREENECTAPI int freenect_list_device_attributes(freenect_context *ctx, struct freenect_device_attributes** attribute_list);
+int freenect_list_device_attributes(freenect_context *ctx, struct freenect_device_attributes** attribute_list);
 
 /**
  * Free the linked list produced by freenect_list_device_attributes().
  *
  * @param attribute_list Linked list of attributes to free.
  */
-FREENECTAPI void freenect_free_device_attributes(struct freenect_device_attributes* attribute_list);
+void freenect_free_device_attributes(struct freenect_device_attributes* attribute_list);
 
 /**
  * Answer which subdevices this library supports.  This is most useful for
@@ -289,7 +258,7 @@ FREENECTAPI void freenect_free_device_attributes(struct freenect_device_attribut
  *
  * @return Flags representing the subdevices that the library supports opening (see freenect_device_flags)
  */
-FREENECTAPI int freenect_supported_subdevices(void);
+int freenect_supported_subdevices(void);
 
 /**
  * Set which subdevices any subsequent calls to freenect_open_device()
@@ -301,7 +270,7 @@ FREENECTAPI int freenect_supported_subdevices(void);
  * @param ctx Context to set future subdevice selection for
  * @param subdevs Flags representing the subdevices to select
  */
-FREENECTAPI void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs);
+void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs);
 
 /**
  * Opens a kinect device via a context. Index specifies the index of
@@ -314,7 +283,7 @@ FREENECTAPI void freenect_select_subdevices(freenect_context *ctx, freenect_devi
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_open_device(freenect_context *ctx, freenect_device **dev, int index);
+int freenect_open_device(freenect_context *ctx, freenect_device **dev, int index);
 
 /**
  * Opens a kinect device (via a context) associated with a particular camera
@@ -327,7 +296,7 @@ FREENECTAPI int freenect_open_device(freenect_context *ctx, freenect_device **de
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_open_device_by_camera_serial(freenect_context *ctx, freenect_device **dev, const char* camera_serial);
+int freenect_open_device_by_camera_serial(freenect_context *ctx, freenect_device **dev, const char* camera_serial);
 
 /**
  * Closes a device that is currently open
@@ -336,7 +305,7 @@ FREENECTAPI int freenect_open_device_by_camera_serial(freenect_context *ctx, fre
  *
  * @return 0 on success
  */
-FREENECTAPI int freenect_close_device(freenect_device *dev);
+int freenect_close_device(freenect_device *dev);
 
 /**
  * Set the device user data, for passing generic information into
@@ -345,7 +314,7 @@ FREENECTAPI int freenect_close_device(freenect_device *dev);
  * @param dev Device to attach user data to
  * @param user User data to attach
  */
-FREENECTAPI void freenect_set_user(freenect_device *dev, void *user);
+void freenect_set_user(freenect_device *dev, void *user);
 
 /**
  * Retrieve the pointer to user data from the device struct
@@ -354,7 +323,9 @@ FREENECTAPI void freenect_set_user(freenect_device *dev, void *user);
  *
  * @return Pointer to user data
  */
-FREENECTAPI void *freenect_get_user(freenect_device *dev);
+void *freenect_get_user(freenect_device *dev);
+
+void freenect_set_log_level(freenect_context *ctx, freenect_loglevel level);
 
 /// Typedef for depth image received event callbacks
 typedef void (*freenect_depth_cb)(freenect_device *dev, void *depth, uint32_t timestamp);
@@ -367,7 +338,7 @@ typedef void (*freenect_video_cb)(freenect_device *dev, void *video, uint32_t ti
  * @param dev Device to set callback for
  * @param cb Function pointer for processing depth information
  */
-FREENECTAPI void freenect_set_depth_callback(freenect_device *dev, freenect_depth_cb cb);
+void freenect_set_depth_callback(freenect_device *dev, freenect_depth_cb cb);
 
 /**
  * Set callback for video information received event
@@ -375,7 +346,7 @@ FREENECTAPI void freenect_set_depth_callback(freenect_device *dev, freenect_dept
  * @param dev Device to set callback for
  * @param cb Function pointer for processing video information
  */
-FREENECTAPI void freenect_set_video_callback(freenect_device *dev, freenect_video_cb cb);
+void freenect_set_video_callback(freenect_device *dev, freenect_video_cb cb);
 
 /**
  * Set the buffer to store depth information to. Size of buffer is
@@ -387,7 +358,7 @@ FREENECTAPI void freenect_set_video_callback(freenect_device *dev, freenect_vide
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_set_depth_buffer(freenect_device *dev, void *buf);
+int freenect_set_depth_buffer(freenect_device *dev, void *buf);
 
 /**
  * Set the buffer to store depth information to. Size of buffer is
@@ -399,7 +370,7 @@ FREENECTAPI int freenect_set_depth_buffer(freenect_device *dev, void *buf);
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_set_video_buffer(freenect_device *dev, void *buf);
+int freenect_set_video_buffer(freenect_device *dev, void *buf);
 
 /**
  * Start the depth information stream for a device.
@@ -408,7 +379,7 @@ FREENECTAPI int freenect_set_video_buffer(freenect_device *dev, void *buf);
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_start_depth(freenect_device *dev);
+int freenect_start_depth(freenect_device *dev);
 
 /**
  * Start the video information stream for a device.
@@ -417,7 +388,7 @@ FREENECTAPI int freenect_start_depth(freenect_device *dev);
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_start_video(freenect_device *dev);
+int freenect_start_video(freenect_device *dev);
 
 /**
  * Stop the depth information stream for a device
@@ -426,7 +397,7 @@ FREENECTAPI int freenect_start_video(freenect_device *dev);
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_stop_depth(freenect_device *dev);
+int freenect_stop_depth(freenect_device *dev);
 
 /**
  * Stop the video information stream for a device
@@ -435,7 +406,7 @@ FREENECTAPI int freenect_stop_depth(freenect_device *dev);
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_stop_video(freenect_device *dev);
+int freenect_stop_video(freenect_device *dev);
 
 /**
  * Updates the accelerometer state using a blocking control message
@@ -446,7 +417,7 @@ FREENECTAPI int freenect_stop_video(freenect_device *dev);
  * @return 0 on success, < 0 on error. Accelerometer data stored to
  * device struct.
  */
-FREENECTAPI int freenect_update_tilt_state(freenect_device *dev);
+int freenect_update_tilt_state(freenect_device *dev);
 
 /**
  * Retrieve the tilt state from a device
@@ -455,7 +426,7 @@ FREENECTAPI int freenect_update_tilt_state(freenect_device *dev);
  *
  * @return The tilt state struct of the device
  */
-FREENECTAPI freenect_raw_tilt_state* freenect_get_tilt_state(freenect_device *dev);
+freenect_raw_tilt_state* freenect_get_tilt_state(freenect_device *dev);
 
 /**
  * Return the tilt state, in degrees with respect to the horizon
@@ -464,7 +435,7 @@ FREENECTAPI freenect_raw_tilt_state* freenect_get_tilt_state(freenect_device *de
  *
  * @return Current degree of tilt of the device
  */
-FREENECTAPI double freenect_get_tilt_degs(freenect_raw_tilt_state *state);
+double freenect_get_tilt_degs(freenect_raw_tilt_state *state);
 
 /**
  * Set the tilt state of the device, in degrees with respect to the
@@ -478,7 +449,7 @@ FREENECTAPI double freenect_get_tilt_degs(freenect_raw_tilt_state *state);
  *
  * @return 0 on success, < 0 on error.
  */
-FREENECTAPI int freenect_set_tilt_degs(freenect_device *dev, double angle);
+int freenect_set_tilt_degs(freenect_device *dev, double angle);
 
 /**
  * Return the movement state of the tilt motor (moving, stopped, etc...)
@@ -488,7 +459,7 @@ FREENECTAPI int freenect_set_tilt_degs(freenect_device *dev, double angle);
  * @return Status code of the tilt device. See
  * freenect_tilt_status_code enum for more info.
  */
-FREENECTAPI freenect_tilt_status_code freenect_get_tilt_status(freenect_raw_tilt_state *state);
+freenect_tilt_status_code freenect_get_tilt_status(freenect_raw_tilt_state *state);
 
 /**
  * Set the state of the LED. Uses blocking control message call to
@@ -499,7 +470,7 @@ FREENECTAPI freenect_tilt_status_code freenect_get_tilt_status(freenect_raw_tilt
  *
  * @return 0 on success, < 0 on error
  */
-FREENECTAPI int freenect_set_led(freenect_device *dev, freenect_led_options option);
+int freenect_set_led(freenect_device *dev, freenect_led_options option);
 
 /**
  * Get the axis-based gravity adjusted accelerometer state, as laid
@@ -512,14 +483,14 @@ FREENECTAPI int freenect_set_led(freenect_device *dev, freenect_led_options opti
  * @param y Stores Y-axis accelerometer state
  * @param z Stores Z-axis accelerometer state
  */
-FREENECTAPI void freenect_get_mks_accel(freenect_raw_tilt_state *state, double* x, double* y, double* z);
+void freenect_get_mks_accel(freenect_raw_tilt_state *state, double* x, double* y, double* z);
 
 /**
  * Get the number of video camera modes supported by the driver.  This includes both RGB and IR modes.
  *
  * @return Number of video modes supported by the driver
  */
-FREENECTAPI int freenect_get_video_mode_count();
+int freenect_get_video_mode_count();
 
 /**
  * Get the frame descriptor of the nth supported video mode for the
@@ -529,7 +500,7 @@ FREENECTAPI int freenect_get_video_mode_count();
  *
  * @return A freenect_frame_mode describing the nth video mode
  */
-FREENECTAPI freenect_frame_mode freenect_get_video_mode(int mode_num);
+freenect_frame_mode freenect_get_video_mode(int mode_num);
 
 /**
  * Get the frame descriptor of the current video mode for the specified
@@ -539,7 +510,7 @@ FREENECTAPI freenect_frame_mode freenect_get_video_mode(int mode_num);
  *
  * @return A freenect_frame_mode describing the current video mode of the specified device
  */
-FREENECTAPI freenect_frame_mode freenect_get_current_video_mode(freenect_device *dev);
+freenect_frame_mode freenect_get_current_video_mode(freenect_device *dev);
 
 /**
  * Convenience function to return a mode descriptor matching the
@@ -550,7 +521,7 @@ FREENECTAPI freenect_frame_mode freenect_get_current_video_mode(freenect_device 
  *
  * @return A freenect_frame_mode that matches the arguments specified, if such a valid mode exists; otherwise, an invalid freenect_frame_mode.
  */
-FREENECTAPI freenect_frame_mode freenect_find_video_mode(freenect_resolution res, freenect_video_format fmt);
+freenect_frame_mode freenect_find_video_mode(freenect_resolution res, freenect_video_format fmt);
 
 /**
  * Sets the current video mode for the specified device.  If the
@@ -564,14 +535,14 @@ FREENECTAPI freenect_frame_mode freenect_find_video_mode(freenect_resolution res
  *
  * @return 0 on success, < 0 if error
  */
-FREENECTAPI int freenect_set_video_mode(freenect_device* dev, freenect_frame_mode mode);
+int freenect_set_video_mode(freenect_device* dev, freenect_frame_mode mode);
 
 /**
  * Get the number of depth camera modes supported by the driver.  This includes both RGB and IR modes.
  *
  * @return Number of depth modes supported by the driver
  */
-FREENECTAPI int freenect_get_depth_mode_count();
+int freenect_get_depth_mode_count();
 
 /**
  * Get the frame descriptor of the nth supported depth mode for the
@@ -581,7 +552,7 @@ FREENECTAPI int freenect_get_depth_mode_count();
  *
  * @return A freenect_frame_mode describing the nth depth mode
  */
-FREENECTAPI freenect_frame_mode freenect_get_depth_mode(int mode_num);
+freenect_frame_mode freenect_get_depth_mode(int mode_num);
 
 /**
  * Get the frame descriptor of the current depth mode for the specified
@@ -591,7 +562,7 @@ FREENECTAPI freenect_frame_mode freenect_get_depth_mode(int mode_num);
  *
  * @return A freenect_frame_mode describing the current depth mode of the specified device
  */
-FREENECTAPI freenect_frame_mode freenect_get_current_depth_mode(freenect_device *dev);
+freenect_frame_mode freenect_get_current_depth_mode(freenect_device *dev);
 
 /**
  * Convenience function to return a mode descriptor matching the
@@ -602,7 +573,7 @@ FREENECTAPI freenect_frame_mode freenect_get_current_depth_mode(freenect_device 
  *
  * @return A freenect_frame_mode that matches the arguments specified, if such a valid mode exists; otherwise, an invalid freenect_frame_mode.
  */
-FREENECTAPI freenect_frame_mode freenect_find_depth_mode(freenect_resolution res, freenect_depth_format fmt);
+freenect_frame_mode freenect_find_depth_mode(freenect_resolution res, freenect_depth_format fmt);
 
 /**
  * Sets the current depth mode for the specified device.  The mode
@@ -613,11 +584,7 @@ FREENECTAPI freenect_frame_mode freenect_find_depth_mode(freenect_resolution res
  *
  * @return 0 on success, < 0 if error
  */
-FREENECTAPI int freenect_set_depth_mode(freenect_device* dev, const freenect_frame_mode mode);
-
-#ifdef __cplusplus
-}
-#endif
+int freenect_set_depth_mode(freenect_device* dev, const freenect_frame_mode mode);
 
 #endif //
 

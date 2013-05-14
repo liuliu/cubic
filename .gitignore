@@ -1,0 +1,6 @@
+*.[oda]
+*.~
+*.swp
+tags
+*.pyc
+bin/bbview

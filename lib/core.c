@@ -118,11 +118,13 @@ void freenect_free_device_attributes(struct freenect_device_attributes *attribut
 	return;
 }
 
-int freenect_supported_subdevices(void) {
+int freenect_supported_subdevices(void)
+{
 	return FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA;
 }
 
-void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs) {
+void freenect_select_subdevices(freenect_context *ctx, freenect_device_flags subdevs)
+{
 	ctx->enabled_subdevices = (freenect_device_flags)(subdevs & (FREENECT_DEVICE_MOTOR | FREENECT_DEVICE_CAMERA));
 }
 

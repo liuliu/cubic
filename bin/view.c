@@ -33,17 +33,9 @@
 #include "libfreenect-registration.h"
 
 #include <pthread.h>
-
-#if defined(__APPLE__)
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#endif
-
 #include <math.h>
 
 pthread_t freenect_thread;
@@ -163,7 +155,7 @@ void keyPressed(unsigned char key, int x, int y)
 {
 	if (key == 27) {
 		die = 1;
-		pthread_join(freenect_thread, NULL);
+		pthread_join(freenect_thread, 0);
 		glutDestroyWindow(window);
 		free(box_mid);
 		free(box_front);
@@ -216,7 +208,7 @@ void *gl_threadfunc(void *arg)
 
 	glutMainLoop();
 
-	return NULL;
+	return 0;
 }
 
 void depth_cb(freenect_device *dev, void *v_depth, uint32_t timestamp)
@@ -276,7 +268,7 @@ void *freenect_threadfunc(void *arg)
 	freenect_shutdown(f_ctx);
 
 	printf("-- done!\n");
-	return NULL;
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -286,46 +278,44 @@ int main(int argc, char **argv)
 	box_mid = (uint32_t*)malloc(100 * 100 * 50 * sizeof(uint32_t));
 	box_front = (uint32_t*)malloc(100 * 100 * 50 * sizeof(uint32_t));
 
-	printf("Kinect camera test\n");
-
 	g_argc = argc;
 	g_argv = argv;
 
-	if (freenect_init(&f_ctx, NULL) < 0) {
+	if (freenect_init(&f_ctx, 0) < 0) {
 		printf("freenect_init() failed\n");
-		return 1;
+		return -1;
 	}
 
 	freenect_set_log_level(f_ctx, FREENECT_LOG_DEBUG);
 	freenect_select_subdevices(f_ctx, FREENECT_DEVICE_CAMERA);
 
-	int nr_devices = freenect_num_devices (f_ctx);
+	int nr_devices = freenect_num_devices(f_ctx);
 	printf ("Number of devices found: %d\n", nr_devices);
 
 	int user_device_number = 0;
-	if (argc > 1)
-		user_device_number = atoi(argv[1]);
 
-	if (nr_devices < 1) {
+	if (nr_devices < 1)
+	{
 		freenect_shutdown(f_ctx);
-		return 1;
+		return -1;
 	}
 
-	if (freenect_open_device(f_ctx, &f_dev, user_device_number) < 0) {
+	if (freenect_open_device(f_ctx, &f_dev, user_device_number) < 0)
+	{
 		printf("Could not open device\n");
 		freenect_shutdown(f_ctx);
-		return 1;
+		return -1;
 	}
 
-	res = pthread_create(&freenect_thread, NULL, freenect_threadfunc, NULL);
-	if (res) {
+	res = pthread_create(&freenect_thread, 0, freenect_threadfunc, 0);
+	if (res)
+	{
 		printf("pthread_create failed\n");
 		freenect_shutdown(f_ctx);
-		return 1;
+		return -1;
 	}
 
-	// OS X requires GLUT to run on the main thread
-	gl_threadfunc(NULL);
+	gl_threadfunc(0);
 
 	return 0;
 }

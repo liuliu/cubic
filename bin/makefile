@@ -4,18 +4,18 @@ include ../lib/config.mk
 LDFLAGS := -L"../lib" -lfreenect $(LDFLAGS)
 CFLAGS := -O3 -Wall -I"../lib" $(CFLAGS)
 
-TARGETS = bbview
+TARGETS = view
 
-all: libfreenect.a $(TARGETS)
+all: libcubic.a $(TARGETS)
 
 clean:
 	${MAKE} clean -C ../lib ; rm -f *.o $(TARGETS)
 
-$(TARGETS): %: %.o libfreenect.a
+$(TARGETS): %: %.o libcubic.a
 	$(CC) -o $@ $< $(LDFLAGS)
 
-libfreenect.a:
+libcubic.a:
 	${MAKE} -C ../lib
 
-%.o: %.c ../lib/libfreenect.h ../lib/libfreenect-registration.h
+%.o: %.c ../lib/cubic.h
 	$(CC) $< -o $@ -c $(CFLAGS)

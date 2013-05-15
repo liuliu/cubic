@@ -72,31 +72,30 @@ int fnusb_list_device_attributes(fnusb_ctx *ctx, struct freenect_device_attribut
 	struct libusb_device_descriptor desc;
 	int num_cams = 0;
 	int i;
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		int r = libusb_get_device_descriptor (devs[i], &desc);
 		if (r < 0)
 			continue;
-		if (desc.idVendor == VID_MICROSOFT && desc.idProduct == PID_NUI_CAMERA) {
+		if (desc.idVendor == VID_MICROSOFT && desc.idProduct == PID_NUI_CAMERA)
+		{
 			// Verify that a serial number exists to query.  If not, don't touch the device.
-			if (desc.iSerialNumber == 0) {
+			if (desc.iSerialNumber == 0)
 				continue;
-			}
 
 			// Open device.
 			int res;
 			libusb_device_handle *this_device;
 			res = libusb_open(devs[i], &this_device);
 			unsigned char string_desc[256]; // String descriptors are at most 256 bytes.
-			if (res != 0) {
+			if (res != 0)
 				continue;
-			}
 
 			// Read string descriptor referring to serial number.
 			res = libusb_get_string_descriptor_ascii(this_device, desc.iSerialNumber, string_desc, 256);
 			libusb_close(this_device);
-			if (res < 0) {
+			if (res < 0)
 				continue;
-			}
 
 			// Add item to linked list.
 			struct freenect_device_attributes* new_dev_attrs = (struct freenect_device_attributes*)malloc(sizeof(struct freenect_device_attributes));
@@ -118,9 +117,11 @@ int fnusb_list_device_attributes(fnusb_ctx *ctx, struct freenect_device_attribut
 int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
 {
 	int res;
-	if (!usb_ctx) {
+	if (!usb_ctx)
+	{
 		res = libusb_init(&ctx->ctx);
-		if (res >= 0) {
+		if (res >= 0)
+		{
 			ctx->should_free_ctx = 1;
 			return 0;
 		} else {
@@ -130,7 +131,7 @@ int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
 		}
 	} else {
     // explicit cast required: in WIN32, freenect_usb_context* maps to void*
-    ctx->ctx = (libusb_context*)usb_ctx;
+		ctx->ctx = (libusb_context*)usb_ctx;
 		ctx->should_free_ctx = 0;
 		return 0;
 	}
@@ -139,7 +140,8 @@ int fnusb_init(fnusb_ctx *ctx, freenect_usb_context *usb_ctx)
 int fnusb_shutdown(fnusb_ctx *ctx)
 {
 	//int res;
-	if (ctx->should_free_ctx) {
+	if (ctx->should_free_ctx)
+	{
 		libusb_exit(ctx->ctx);
 		ctx->ctx = NULL;
 	}
@@ -166,17 +168,18 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 	dev->usb_motor.dev = NULL;
 
 	libusb_device **devs; //pointer to pointer of device, used to retrieve a list of devices
-	ssize_t cnt = libusb_get_device_list (dev->parent->usb.ctx, &devs); //get the list of devices
+	ssize_t cnt = libusb_get_device_list(dev->parent->usb.ctx, &devs); //get the list of devices
 	if (cnt < 0)
 		return -1;
 
-	int i = 0, nr_cam = 0, nr_mot = 0;
+	int i = 0, nr_ms_dev = 0, nr_cam = 0, nr_mot = cnt, mot_idx = cnt;
 	int res;
 	struct libusb_device_descriptor desc;
 	dev->hwrev = HWREV_K4W_0;
 
-	for (i = 0; i < cnt; i++) {
-		int r = libusb_get_device_descriptor (devs[i], &desc);
+	for (i = 0; i < cnt; i++)
+	{
+		int r = libusb_get_device_descriptor(devs[i], &desc);
 		if (r < 0)
 			continue;
 
@@ -185,79 +188,87 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 
 		// new Kinect doesn't have separate motor interface anymore, this gives us clue which version of Kinect we are using
 		if (desc.idProduct == PID_NUI_MOTOR)
-			dev->hwrev = HWREV_XBOX360_0;
+			mot_idx = i, nr_mot = nr_ms_dev;
 
 		// Search for the camera
-		if ((ctx->enabled_subdevices & FREENECT_DEVICE_CAMERA) && !dev->usb_cam.dev && desc.idProduct == PID_NUI_CAMERA) {
+		if ((ctx->enabled_subdevices & FREENECT_DEVICE_CAMERA) && !dev->usb_cam.dev && desc.idProduct == PID_NUI_CAMERA)
+		{
 			// If the index given by the user matches our camera index
-			if (nr_cam == index) {
+			if (nr_cam == index)
+			{
+				// basically, if the device immediately follows motor is the camera, then it is a Xbox 360 Kinect
+				if (nr_ms_dev == nr_mot + 1)
+					dev->hwrev = HWREV_XBOX360_0;
 				res = libusb_open (devs[i], &dev->usb_cam.dev);
-				if (res < 0 || !dev->usb_cam.dev) {
+				if (res < 0 || !dev->usb_cam.dev)
+				{
 					FN_ERROR("Could not open camera: %d\n", res);
 					dev->usb_cam.dev = NULL;
 					break;
 				}
-#ifndef _WIN32
 				// Detach an existing kernel driver for the device
 				res = libusb_kernel_driver_active(dev->usb_cam.dev, 0);
-				if (res == 1) {
+				if (res == 1)
+				{
 					res = libusb_detach_kernel_driver(dev->usb_cam.dev, 0);
-					if (res < 0) {
+					if (res < 0)
+					{
 						FN_ERROR("Could not detach kernel driver for camera: %d\n", res);
 						libusb_close(dev->usb_cam.dev);
 						dev->usb_cam.dev = NULL;
 						break;
 					}
 				}
-#endif
 				res = libusb_claim_interface (dev->usb_cam.dev, 0);
-				if (res < 0) {
+				if (res < 0)
+				{
 					FN_ERROR("Could not claim interface on camera: %d\n", res);
 					libusb_close(dev->usb_cam.dev);
 					dev->usb_cam.dev = NULL;
 					break;
 				}
-			} else {
-				nr_cam++;
-			}
-		}
-
-		// Search for the motor
-		if ((ctx->enabled_subdevices & FREENECT_DEVICE_MOTOR) && !dev->usb_motor.dev && (desc.idProduct == PID_NUI_MOTOR || desc.idProduct == PID_NUI_AUDIO)) {
-			// If the index given by the user matches our camera index
-			if (nr_mot == index) {
-				res = libusb_open (devs[i], &dev->usb_motor.dev);
-				if (res < 0 || !dev->usb_motor.dev) {
-					FN_ERROR("Could not open motor: %d\n", res);
-					dev->usb_motor.dev = NULL;
-					break;
-				}
-				res = libusb_claim_interface (dev->usb_motor.dev, 0);
-				if (res < 0) {
-					FN_ERROR("Could not claim interface on motor: %d\n", res);
-					libusb_close(dev->usb_motor.dev);
-					dev->usb_motor.dev = NULL;
-					break;
+				// Open for the motor
+				// the device immediately before camera is the motor on Xbox 360
+				if ((ctx->enabled_subdevices & FREENECT_DEVICE_MOTOR) && !dev->usb_motor.dev && nr_ms_dev == nr_mot + 1)
+				{
+					// If the index given by the user matches our camera index
+					res = libusb_open (devs[mot_idx], &dev->usb_motor.dev);
+					if (res < 0 || !dev->usb_motor.dev)
+					{
+						FN_ERROR("Could not open motor: %d\n", res);
+						dev->usb_motor.dev = NULL;
+						break;
+					}
+					res = libusb_claim_interface (dev->usb_motor.dev, 0);
+					if (res < 0) {
+						FN_ERROR("Could not claim interface on motor: %d\n", res);
+						libusb_close(dev->usb_motor.dev);
+						dev->usb_motor.dev = NULL;
+						break;
+					}
 				}
 			} else {
-				nr_mot++;
+				++nr_cam;
 			}
 		}
+		++nr_ms_dev;
 	}
 
 	libusb_free_device_list (devs, 1);  // free the list, unref the devices in it
 
 	// Check that each subdevice is either opened or not enabled.
 	if ( (dev->usb_cam.dev || !(ctx->enabled_subdevices & FREENECT_DEVICE_CAMERA))
-		&& (dev->usb_motor.dev || !(ctx->enabled_subdevices & FREENECT_DEVICE_MOTOR))
-		) {
+		&& (dev->usb_motor.dev || !(ctx->enabled_subdevices & FREENECT_DEVICE_MOTOR)))
+	{
 		return 0;
 	} else {
-		if (dev->usb_cam.dev) {
+		if (dev->usb_cam.dev)
+		{
 			libusb_release_interface(dev->usb_cam.dev, 0);
 			libusb_close(dev->usb_cam.dev);
 		}
-		if (dev->usb_motor.dev) {
+		if (dev->usb_motor.dev)
+		{
 			libusb_release_interface(dev->usb_motor.dev, 0);
 			libusb_close(dev->usb_motor.dev);
 		}
@@ -267,15 +278,15 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 
 int fnusb_close_subdevices(freenect_device *dev)
 {
-	if (dev->usb_cam.dev) {
+	if (dev->usb_cam.dev)
+	{
 		libusb_release_interface(dev->usb_cam.dev, 0);
-#ifndef _WIN32
 		libusb_attach_kernel_driver(dev->usb_cam.dev, 0);
-#endif
 		libusb_close(dev->usb_cam.dev);
 		dev->usb_cam.dev = NULL;
 	}
-	if (dev->usb_motor.dev) {
+	if (dev->usb_motor.dev)
+	{
 		libusb_release_interface(dev->usb_motor.dev, 0);
 		libusb_close(dev->usb_motor.dev);
 		dev->usb_motor.dev = NULL;

@@ -1,7 +1,7 @@
 include ../lib/config.mk
 
 #CC += -faddress-sanitizer -fno-omit-frame-pointer
-LDFLAGS := -L"../lib" -lfreenect $(LDFLAGS)
+LDFLAGS := -L"../lib" -lcubic $(LDFLAGS)
 CFLAGS := -O3 -Wall -I"../lib" $(CFLAGS)
 
 TARGETS = view

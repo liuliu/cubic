@@ -16,6 +16,10 @@ static pthread_mutex_t gl_backbuf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static uint32_t *back;
 
+static float pitch = 0;
+static float yaw = 0;
+static float scale = 1;
+
 static void draw_cube_at(double x, double y, double z)
 {
 	const static float radius = 0.045f;
@@ -46,9 +50,9 @@ static void draw_cube_at(double x, double y, double z)
 	glVertex3f(x + radius, y + radius, z + radius); // Bottom Right Of The Quad (Top)
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, orange);
 	glVertex3f(x + radius, y - radius, z - radius); // Top Right Of The Quad (Bottom)
-	glVertex3f(x - radius, y - radius, z - radius); // Top Left Of The Quad (Bottom)
-	glVertex3f(x - radius, y - radius, z + radius); // Bottom Left Of The Quad (Bottom)
 	glVertex3f(x + radius, y - radius, z + radius); // Bottom Right Of The Quad (Bottom)
+	glVertex3f(x - radius, y - radius, z + radius); // Bottom Left Of The Quad (Bottom)
+	glVertex3f(x - radius, y - radius, z - radius); // Top Left Of The Quad (Bottom)
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, red);
 	glVertex3f(x + radius, y + radius, z + radius); // Top Right Of The Quad (Front)
 	glVertex3f(x - radius, y + radius, z + radius); // Top Left Of The Quad (Front)
@@ -77,8 +81,24 @@ static void draw_environment(void)
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
 	gluLookAt(0, 0, -4, 0, 0, 0, 0, 1, 0);
-	// glRotatef(-90, 1, 0, 0);
-	glRotatef(60, 0, 1, 0);
+	float light_ambient[] = {
+		0.2, 0.2, 0.2, 1.0
+	};
+	float light_diffuse[] = {
+		1.0, 1.0, 1.0, 1.0
+	};
+	float light_position[] = {
+		0.0, 0.0, -4.0, 1.0
+	};
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.1);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0);
+	glScalef(scale, scale, scale);
+	glRotatef(pitch, 1, 0, 0);
+	glRotatef(yaw, 0, 1, 0);
 
 	pthread_mutex_lock(&gl_backbuf_mutex);
 	int x, y, z;
@@ -105,6 +125,18 @@ static void key_pressed(unsigned char key, int x, int y)
 		free(back);
 		// Not pthread_exit because OSX leaves a thread lying around and doesn't exit
 		exit(0);
+	} else if (key == 'a') {
+		yaw -= 1;
+	} else if (key == 'd') {
+		yaw += 1;
+	} else if (key == 'w') {
+		pitch += 1;
+	} else if (key == 's') {
+		pitch -= 1;
+	} else if (key == 'z') {
+		scale *= 1 / 1.1;
+	} else if (key == 'x') {
+		scale *= 1.1;
 	}
 }
 
@@ -120,23 +152,9 @@ static void resize_environment(int Width, int Height)
 static void environment_initialize(int Width, int Height)
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	float light_ambient[] = {
-		0.2, 0.2, 0.2, 1.0
-	};
-	float light_diffuse[] = {
-		1.0, 1.0, 1.0, 1.0
-	};
-	float light_position[] = {
-		0.0, 0.0, 0.0, 1.0
-	};
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.1);
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.05);
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 static void cubic_on_ready(cubic_t* cubic)
@@ -173,12 +191,12 @@ int main(int argc, char **argv)
 	};
 
 	int ids[] = {
-		0, 1, 2
+		0, 3, 5, 2, 4, 1
 	};
 
 	back = (uint32_t*)malloc(200 * 200 * 100 * sizeof(uint32_t));
 
-	cubic_t* cubic = cubic_open(3, ids, params);
+	cubic_t* cubic = cubic_open(2, ids, params);
 
 	glutMainLoop();
 

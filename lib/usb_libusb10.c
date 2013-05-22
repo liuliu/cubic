@@ -199,7 +199,7 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 				// basically, if the device immediately follows motor is the camera, then it is a Xbox 360 Kinect
 				if (nr_ms_dev == nr_mot + 1)
 					dev->hwrev = HWREV_XBOX360_0;
-				res = libusb_open (devs[i], &dev->usb_cam.dev);
+				res = libusb_open(devs[i], &dev->usb_cam.dev);
 				if (res < 0 || !dev->usb_cam.dev)
 				{
 					FN_ERROR("Could not open camera: %d\n", res);
@@ -219,7 +219,7 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 						break;
 					}
 				}
-				res = libusb_claim_interface (dev->usb_cam.dev, 0);
+				res = libusb_claim_interface(dev->usb_cam.dev, 0);
 				if (res < 0)
 				{
 					FN_ERROR("Could not claim interface on camera: %d\n", res);
@@ -247,9 +247,8 @@ int fnusb_open_subdevices(freenect_device *dev, int index)
 						break;
 					}
 				}
-			} else {
-				++nr_cam;
 			}
+			++nr_cam;
 		}
 		++nr_ms_dev;
 	}

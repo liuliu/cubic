@@ -28,15 +28,18 @@ static void cubic_depth_to_cube(uint16_t* depth, double resolution, size_t dims[
 	{
 		for (j = 0; j < KINECT_WIDTH; j++)
 		{
-			double z = depth[j] + ref_distance;
-			double factor = 2 * ref_pix_size * z / ref_distance;
-			double x = (j - KINECT_WIDTH / 2 + 0.5) * factor;
-			double y = (i - KINECT_HEIGHT / 2 + 0.5) * factor;
-			uint32_t wx = (uint32_t)((x * transform.m00 + y * transform.m01 + z * transform.m02 + transform.m03) / resolution + 0.5 * dims[0] + 0.5);
-			uint32_t wy = (uint32_t)((x * transform.m10 + y * transform.m11 + z * transform.m12 + transform.m13) / resolution + 0.5 * dims[1] + 0.5);
-			uint32_t wz = (uint32_t)((x * transform.m20 + y * transform.m21 + z * transform.m22 + transform.m23) / resolution + 0.5 * dims[2] + 0.5);
-			if (wx < dims[0] && wy < dims[1] && wz < dims[2])
-				++cube[wz * dims[0] * dims[1] + wy * dims[0] + wx];
+			if (depth[j]) // 0 is not a valid value
+			{
+				double z = depth[j] + ref_distance;
+				double factor = 2 * ref_pix_size * z / ref_distance;
+				double x = (j - KINECT_WIDTH / 2 + 0.5) * factor;
+				double y = (i - KINECT_HEIGHT / 2 + 0.5) * factor;
+				uint32_t wx = (uint32_t)((x * transform.m00 + y * transform.m01 + z * transform.m02 + transform.m03) / resolution + 0.5 * dims[0] + 0.5);
+				uint32_t wy = (uint32_t)((x * transform.m10 + y * transform.m11 + z * transform.m12 + transform.m13) / resolution + 0.5 * dims[1] + 0.5);
+				uint32_t wz = (uint32_t)((x * transform.m20 + y * transform.m21 + z * transform.m22 + transform.m23) / resolution + 0.5 * dims[2] + 0.5);
+				if (wx < dims[0] && wy < dims[1] && wz < dims[2])
+					++cube[wz * dims[0] * dims[1] + wy * dims[0] + wx];
+			}
 		}
 		depth += KINECT_WIDTH;
 	}
@@ -77,6 +80,7 @@ static void* cubic_main(void* data)
 		freenect_set_depth_callback(cubic->devices[i].device, cubic_feedback);
 		freenect_set_depth_mode(cubic->devices[i].device, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_MM));
 		freenect_start_depth(cubic->devices[i].device);
+		usleep(100000);
 	}
 
 	while (freenect_process_events(cubic->context) >= 0);

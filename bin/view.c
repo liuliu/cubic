@@ -107,7 +107,7 @@ static void draw_environment(void)
 		for (y = 0; y < 100; y++)
 		{
 			for (x = 0; x < 200; x++)
-				if (cube[x] >= 100)
+				if (cube[x] >= 50)
 					// draw the box because it is presented
 					draw_cube_at(-(x - 100) * 0.1, -(y - 50) * 0.1, (z - 100) * 0.1); // change from left-hand coordinate to right-hand coordinate
 			cube += 200;
@@ -191,12 +191,12 @@ int main(int argc, char **argv)
 	};
 
 	int ids[] = {
-		0, 3, 5, 2, 4, 1
+		4, 2, 1, 3, 5, 0
 	};
 
 	back = (uint32_t*)malloc(200 * 200 * 100 * sizeof(uint32_t));
 
-	cubic_t* cubic = cubic_open(2, ids, params);
+	cubic_t* cubic = cubic_open(6, ids, params);
 
 	glutMainLoop();
 
